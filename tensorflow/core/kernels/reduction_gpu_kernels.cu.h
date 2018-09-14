@@ -268,7 +268,7 @@ __global__ void ColumnReduceMax16ColumnsKernel(
 
   // 1D array necessary due to bug in CUDA 9 compiler.
   // TODO(nluehr) revert to 2D array when compiler is ready.
-  __shared__ value_type partial_sums[32 * 33];
+  /*__shared__*/ value_type partial_sums[32 * 33];
 
   row += rows_per_warp * gridDim.y * blockDim.y;
   for (; row < num_rows; row += rows_per_warp * gridDim.y * blockDim.y) {
@@ -317,7 +317,7 @@ __global__ void ColumnReduceKernel(
 
   // 1D array necessary due to bug in CUDA 9 compiler.
   // TODO(nluehr) revert to 2D array when compiler is ready.
-  __shared__ value_type partial_sums[32 * 33];
+  /*__shared__*/ value_type partial_sums[32 * 33];
 
   row += gridDim.y * blockDim.y;
 

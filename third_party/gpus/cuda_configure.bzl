@@ -607,6 +607,8 @@ def _find_cudnn_header_dir(repository_ctx, cudnn_install_basedir):
     return cudnn_install_basedir
   if repository_ctx.path(cudnn_install_basedir + "/include/cudnn.h").exists:
     return cudnn_install_basedir + "/include"
+  if repository_ctx.path(cudnn_install_basedir + "/../include/cudnn.h").exists:
+    return cudnn_install_basedir + "/../include"
   if repository_ctx.path("/usr/include/cudnn.h").exists:
     return "/usr/include"
   auto_configure_fail("Cannot find cudnn.h under %s" % cudnn_install_basedir)
