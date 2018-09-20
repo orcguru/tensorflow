@@ -11,3 +11,8 @@ tf_custom_op_library(
   gpu_srcs = ["lsh_gpu.cu.cc"],
 )
 
+tf_custom_op_library(
+  name = "lsh_mcpu.so",
+  srcs = ["lsh_mcpu.cc"],
+)
+
