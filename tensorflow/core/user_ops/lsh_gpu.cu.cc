@@ -7,13 +7,17 @@ __global__ void LshGpuKernel(const int P, const int N, const int* a, const int* 
     if (p < P) {
       unsigned long h = 0;
       for (int i = 0; i < N; i++) {
-        h = h + ((unsigned long)((unsigned int)a[i]) * (unsigned long)((unsigned int)b[p*N+i]));
+        h = h + ((unsigned long)((unsigned int)a[i+1]) * (unsigned long)((unsigned int)b[p*N+i]));
         h = (h & 4294967295UL) + 5 * (h >> 32);
         if (h >= 4294967291UL) {
           h = h - 4294967291UL;
         }
       }
-      out[p] = (unsigned int)h;
+      if (a[0] != 0) {
+        out[p] = (unsigned int)(h%(unsigned long)a[0]);
+      } else {
+        out[p] = (unsigned int)h;
+      }
     }
 }
 

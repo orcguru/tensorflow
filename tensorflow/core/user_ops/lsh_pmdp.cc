@@ -10,6 +10,7 @@ using namespace tensorflow;
 REGISTER_OP("LshPmdp")
   .Input("a: int32")
   .Input("b: int32")
+  .Input("mod_flag: int32")
   .Output("h: int32")
   .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
     c->set_output(0, c->input(0));
@@ -24,8 +25,10 @@ public:
     // Grab the input tensor
     const Tensor& input_tensor_a = context->input(0);
     const Tensor& input_tensor_b = context->input(1);
+    const Tensor& input_tensor_mf = context->input(2);
     auto input_a = input_tensor_a.flat<int32>();
     auto input_b = input_tensor_b.matrix<int32>();
+    auto input_mf = input_tensor_mf.flat<int32>();
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
@@ -36,6 +39,7 @@ public:
 
     const int P = input_b.dimension(0);
     const int N = input_b.dimension(1);
+    const int mf = input_mf(0);
     for (int p = 0; p < P; p++) {
       unsigned long h = 0;
       for (int i = 0; i < N; i++) {
@@ -45,7 +49,11 @@ public:
           h = h - 4294967291UL;
         }
       }
-      output_flat(p) = (unsigned int)h;
+      if (mf != 0) {
+        output_flat(p) = (unsigned int)(h%(unsigned long)mf);
+      } else {
+        output_flat(p) = (unsigned int)h;
+      }
     }
   }
 };
