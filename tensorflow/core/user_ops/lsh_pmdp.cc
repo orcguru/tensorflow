@@ -32,27 +32,32 @@ public:
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
+    const int lsh_m = input_a.size();
+    const int M = input_b.dimension(0);
+    const int lsh_m_mul_L = input_b.dimension(1);
+    const int L = lsh_m_mul_L/lsh_m;
+    const int mf = input_mf(0);
+
     TensorShape ts;
-    ts.AddDim(input_b.dimension(0));
+    ts.AddDim(M*L);
     OP_REQUIRES_OK(context, context->allocate_output(0, ts, &output_tensor));
     auto output_flat = output_tensor->flat<int32>();
 
-    const int P = input_b.dimension(0);
-    const int N = input_b.dimension(1);
-    const int mf = input_mf(0);
-    for (int p = 0; p < P; p++) {
-      unsigned long h = 0;
-      for (int i = 0; i < N; i++) {
-        h = h + ((unsigned long)((unsigned int)input_a(i)) * (unsigned long)((unsigned int)input_b(p, i)));
-        h = (h & 4294967295UL) + 5 * (h >> 32);
-        if (h >= 4294967291UL) {
-          h = h - 4294967291UL;
+    for (int p = 0; p < M; p++) {
+      for (int li = 0; li < L; li++) {
+        unsigned long h = 0;
+        for (int i = 0; i < lsh_m; i++) {
+          h = h + ((unsigned long)((unsigned int)input_a(i)) * (unsigned long)((unsigned int)input_b(p, li*lsh_m+i)));
+          h = (h & 4294967295UL) + 5 * (h >> 32);
+          if (h >= 4294967291UL) {
+            h = h - 4294967291UL;
+          }
         }
-      }
-      if (mf != 0) {
-        output_flat(p) = (unsigned int)(h%(unsigned long)mf);
-      } else {
-        output_flat(p) = (unsigned int)h;
+        if (mf != 0) {
+          output_flat(p*L+li) = (unsigned int)(h%(unsigned long)mf);
+        } else {
+          output_flat(p*L+li) = (unsigned int)h;
+        }
       }
     }
   }

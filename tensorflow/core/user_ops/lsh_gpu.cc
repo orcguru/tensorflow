@@ -16,7 +16,7 @@ REGISTER_OP("LshGpu")
     return Status::OK();
   });
 
-void LshGpuKernelLauncher(const int P, const int N, const int* a, const int* b, int* out);
+void LshGpuKernelLauncher(const int lsh_m, const int M, const int L, const int* a, const int* b, int* out);
 
 class LshGpuOp: public OpKernel {
 public:
@@ -31,14 +31,17 @@ public:
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
+    const int lsh_m = input_a.size() - 1;
+    const int M = input_b.dimension(0);
+    const int lsh_m_mul_L = input_b.dimension(1);
+    const int L = lsh_m_mul_L/lsh_m;
+
     TensorShape ts;
-    ts.AddDim(input_b.dimension(0));
+    ts.AddDim(M*L);
     OP_REQUIRES_OK(context, context->allocate_output(0, ts, &output_tensor));
     auto output_flat = output_tensor->flat<int32>();
 
-    const int P = input_b.dimension(0);
-    const int N = input_b.dimension(1);
-    LshGpuKernelLauncher(P, N, input_a.data(), input_b.data(), output_flat.data());
+    LshGpuKernelLauncher(lsh_m, M, L, input_a.data(), input_b.data(), output_flat.data());
   }
 };
 
